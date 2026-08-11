@@ -361,6 +361,6 @@ kubectl get svc -A
 
 ## Author
 
-**Subhasis Maity**
+**Subhasish Maiti**
 
-DevSecOps / Cloud Infrastructure
+DevSecOps / Cloud Engineer
