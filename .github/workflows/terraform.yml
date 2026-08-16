@@ -21,7 +21,7 @@ env:
 jobs:
 
   # =========================================================
-  # FEATURE BRANCH / PR
+  # FEATURE BRANCH
   # Terraform Plan
   # =========================================================
 
@@ -55,7 +55,7 @@ jobs:
 
 
       # -----------------------------------------------------
-      # Azure Login
+      # Azure Login - OIDC
       # -----------------------------------------------------
 
       - name: Azure Login
@@ -67,12 +67,28 @@ jobs:
 
 
       # -----------------------------------------------------
+      # Check Azure Login
+      # -----------------------------------------------------
+
+      - name: Check Azure Account
+        run: |
+          az account show
+
+
+      # -----------------------------------------------------
       # Terraform Init
       # -----------------------------------------------------
 
       - name: Terraform Init
         working-directory: ${{ env.TF_WORKING_DIR }}
-        run: terraform init
+        env:
+          ARM_USE_OIDC: "true"
+          ARM_USE_CLI: "false"
+          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        run: |
+          terraform init
 
 
       # -----------------------------------------------------
@@ -81,7 +97,8 @@ jobs:
 
       - name: Terraform Format Check
         working-directory: ${{ env.TF_WORKING_DIR }}
-        run: terraform fmt -check -recursive
+        run: |
+          terraform fmt -check -recursive
 
 
       # -----------------------------------------------------
@@ -90,7 +107,14 @@ jobs:
 
       - name: Terraform Validate
         working-directory: ${{ env.TF_WORKING_DIR }}
-        run: terraform validate
+        env:
+          ARM_USE_OIDC: "true"
+          ARM_USE_CLI: "false"
+          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        run: |
+          terraform validate
 
 
       # -----------------------------------------------------
@@ -99,12 +123,19 @@ jobs:
 
       - name: Terraform Plan
         working-directory: ${{ env.TF_WORKING_DIR }}
-        run: terraform plan -out=tfplan
+        env:
+          ARM_USE_OIDC: "true"
+          ARM_USE_CLI: "false"
+          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        run: |
+          terraform plan -out=tfplan
 
 
   # =========================================================
   # MAIN BRANCH
-  # Terraform Plan
+  # Complete Terraform Plan
   # =========================================================
 
   main-validation:
@@ -138,7 +169,7 @@ jobs:
 
 
       # -----------------------------------------------------
-      # Azure Login
+      # Azure Login - OIDC
       # -----------------------------------------------------
 
       - name: Azure Login
@@ -150,12 +181,28 @@ jobs:
 
 
       # -----------------------------------------------------
+      # Check Azure Login
+      # -----------------------------------------------------
+
+      - name: Check Azure Account
+        run: |
+          az account show
+
+
+      # -----------------------------------------------------
       # Terraform Init
       # -----------------------------------------------------
 
       - name: Terraform Init
         working-directory: ${{ env.TF_WORKING_DIR }}
-        run: terraform init
+        env:
+          ARM_USE_OIDC: "true"
+          ARM_USE_CLI: "false"
+          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        run: |
+          terraform init
 
 
       # -----------------------------------------------------
@@ -164,7 +211,8 @@ jobs:
 
       - name: Terraform Format Check
         working-directory: ${{ env.TF_WORKING_DIR }}
-        run: terraform fmt -check -recursive
+        run: |
+          terraform fmt -check -recursive
 
 
       # -----------------------------------------------------
@@ -173,7 +221,14 @@ jobs:
 
       - name: Terraform Validate
         working-directory: ${{ env.TF_WORKING_DIR }}
-        run: terraform validate
+        env:
+          ARM_USE_OIDC: "true"
+          ARM_USE_CLI: "false"
+          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        run: |
+          terraform validate
 
 
       # -----------------------------------------------------
@@ -182,7 +237,14 @@ jobs:
 
       - name: Terraform Plan
         working-directory: ${{ env.TF_WORKING_DIR }}
-        run: terraform plan -out=tfplan
+        env:
+          ARM_USE_OIDC: "true"
+          ARM_USE_CLI: "false"
+          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        run: |
+          terraform plan -out=tfplan
 
 
       # -----------------------------------------------------
@@ -198,7 +260,7 @@ jobs:
 
   # =========================================================
   # PRODUCTION
-  # Manual Approval + Apply
+  # Manual Approval + Terraform Apply
   # =========================================================
 
   terraform-apply:
@@ -237,7 +299,7 @@ jobs:
 
 
       # -----------------------------------------------------
-      # Azure Login
+      # Azure Login - OIDC
       # -----------------------------------------------------
 
       - name: Azure Login
@@ -249,12 +311,28 @@ jobs:
 
 
       # -----------------------------------------------------
+      # Check Azure Login
+      # -----------------------------------------------------
+
+      - name: Check Azure Account
+        run: |
+          az account show
+
+
+      # -----------------------------------------------------
       # Terraform Init
       # -----------------------------------------------------
 
       - name: Terraform Init
         working-directory: ${{ env.TF_WORKING_DIR }}
-        run: terraform init
+        env:
+          ARM_USE_OIDC: "true"
+          ARM_USE_CLI: "false"
+          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        run: |
+          terraform init
 
 
       # -----------------------------------------------------
@@ -263,7 +341,14 @@ jobs:
 
       - name: Terraform Plan
         working-directory: ${{ env.TF_WORKING_DIR }}
-        run: terraform plan -out=tfplan
+        env:
+          ARM_USE_OIDC: "true"
+          ARM_USE_CLI: "false"
+          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        run: |
+          terraform plan -out=tfplan
 
 
       # -----------------------------------------------------
@@ -272,4 +357,11 @@ jobs:
 
       - name: Terraform Apply
         working-directory: ${{ env.TF_WORKING_DIR }}
-        run: terraform apply -auto-approve tfplan
+        env:
+          ARM_USE_OIDC: "true"
+          ARM_USE_CLI: "false"
+          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        run: |
+          terraform apply -auto-approve tfplan
