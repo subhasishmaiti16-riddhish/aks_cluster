@@ -1,0 +1,275 @@
+name: Terraform DevSecOps Pipeline
+
+on:
+  push:
+    branches:
+      - "feature/**"
+      - main
+
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  TF_VERSION: "1.9.8"
+  TF_WORKING_DIR: "./terraform"
+
+jobs:
+
+  # =========================================================
+  # FEATURE BRANCH / PR
+  # Terraform Plan
+  # =========================================================
+
+  feature-validation:
+
+    name: Feature - Terraform Plan
+
+    if: |
+      github.ref != 'refs/heads/main'
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # -----------------------------------------------------
+      # Checkout
+      # -----------------------------------------------------
+
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+
+      # -----------------------------------------------------
+      # Setup Terraform
+      # -----------------------------------------------------
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+
+      # -----------------------------------------------------
+      # Azure Login
+      # -----------------------------------------------------
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+
+      # -----------------------------------------------------
+      # Terraform Init
+      # -----------------------------------------------------
+
+      - name: Terraform Init
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform init
+
+
+      # -----------------------------------------------------
+      # Terraform Format
+      # -----------------------------------------------------
+
+      - name: Terraform Format Check
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform fmt -check -recursive
+
+
+      # -----------------------------------------------------
+      # Terraform Validate
+      # -----------------------------------------------------
+
+      - name: Terraform Validate
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform validate
+
+
+      # -----------------------------------------------------
+      # Terraform Plan
+      # -----------------------------------------------------
+
+      - name: Terraform Plan
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform plan -out=tfplan
+
+
+  # =========================================================
+  # MAIN BRANCH
+  # Terraform Plan
+  # =========================================================
+
+  main-validation:
+
+    name: Main - Terraform Plan
+
+    if: |
+      github.ref == 'refs/heads/main' &&
+      github.event_name == 'push'
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # -----------------------------------------------------
+      # Checkout
+      # -----------------------------------------------------
+
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+
+      # -----------------------------------------------------
+      # Setup Terraform
+      # -----------------------------------------------------
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+
+      # -----------------------------------------------------
+      # Azure Login
+      # -----------------------------------------------------
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+
+      # -----------------------------------------------------
+      # Terraform Init
+      # -----------------------------------------------------
+
+      - name: Terraform Init
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform init
+
+
+      # -----------------------------------------------------
+      # Terraform Format
+      # -----------------------------------------------------
+
+      - name: Terraform Format Check
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform fmt -check -recursive
+
+
+      # -----------------------------------------------------
+      # Terraform Validate
+      # -----------------------------------------------------
+
+      - name: Terraform Validate
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform validate
+
+
+      # -----------------------------------------------------
+      # Terraform Plan
+      # -----------------------------------------------------
+
+      - name: Terraform Plan
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform plan -out=tfplan
+
+
+      # -----------------------------------------------------
+      # Upload Terraform Plan
+      # -----------------------------------------------------
+
+      - name: Upload Terraform Plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-plan
+          path: ${{ env.TF_WORKING_DIR }}/tfplan
+
+
+  # =========================================================
+  # PRODUCTION
+  # Manual Approval + Apply
+  # =========================================================
+
+  terraform-apply:
+
+    name: Production Approval and Apply
+
+    needs: main-validation
+
+    if: |
+      github.ref == 'refs/heads/main' &&
+      github.event_name == 'push'
+
+    runs-on: ubuntu-latest
+
+    environment:
+      name: production
+
+    steps:
+
+      # -----------------------------------------------------
+      # Checkout
+      # -----------------------------------------------------
+
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+
+      # -----------------------------------------------------
+      # Setup Terraform
+      # -----------------------------------------------------
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+
+      # -----------------------------------------------------
+      # Azure Login
+      # -----------------------------------------------------
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+
+      # -----------------------------------------------------
+      # Terraform Init
+      # -----------------------------------------------------
+
+      - name: Terraform Init
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform init
+
+
+      # -----------------------------------------------------
+      # Terraform Plan Again
+      # -----------------------------------------------------
+
+      - name: Terraform Plan
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform plan -out=tfplan
+
+
+      # -----------------------------------------------------
+      # Terraform Apply
+      # -----------------------------------------------------
+
+      - name: Terraform Apply
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform apply -auto-approve tfplan
