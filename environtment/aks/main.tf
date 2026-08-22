@@ -12,7 +12,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
     vnet_subnet_id = data.azurerm_subnet.subnet_data[each.key].id
 
     upgrade_settings {
-      max_surge = "10%"
+      max_surge = "10%"      #Upgrade এর সময় কতটা extra node temporarily add করা যাবে
     }
   }
 
